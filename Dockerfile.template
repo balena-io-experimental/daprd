@@ -1,0 +1,26 @@
+ARG BALENA_ARCH=%%BALENA_ARCH%%
+
+FROM balenalib/$BALENA_ARCH-alpine as builder
+
+ARG BALENA_ARCH
+
+RUN install_packages tar wget
+
+WORKDIR /usr/src/app
+
+COPY ./download.sh .
+
+# Download daprd and extract
+RUN  ./download.sh $BALENA_ARCH 
+
+
+FROM busybox:stable
+
+# copy contents
+COPY --from=builder /usr/src/app/daprd /usr/local/bin/
+
+COPY VERSION ./
+
+COPY ./entry.sh .
+
+CMD ["sh","./entry.sh", "daprd"]
